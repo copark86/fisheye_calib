@@ -56,14 +56,49 @@ imshow(Data(i).img);
 
 hold on;
 for k = 1:length(Data(i).board_coor(:,1))
-[xo yo] = GetUndistortedXY(Data(i).board_coor(k,1), Data(i).board_coor(k,2),K,invK,f)
-
-
-
-plot(Data(i).board_coor(k,1), Data(i).board_coor(k,2),'bs');
-plot(xo, yo,'rs');
-
+    [xo yo r theta] = GetUndistortedXY(Data(i).board_coor(k,1), Data(i).board_coor(k,2),K,invK,f)
+    plot(Data(i).board_coor(k,1), Data(i).board_coor(k,2),'bs');
+    plot(xo, yo,'rs');
+    theta_s(k) = theta;
+    r_s(k) = r;
+    board_und(k,:) =[xo, yo] ;
 end
+
+
+
+
+%% Estimate homography
+figure
+plot2dquick(board_und)
+
+figure
+plot2dquick(Data(i).img_coor)
+
+figure
+plot2dquick(Data(i).board_coor)
+
+H = HomoNormDLT(Data(i).img_coor,Data(i).board_coor)
+%H = HomoNormDLT(Data(i).img_coor,board_und)
+H=H./H(3,3);
+
+
+[t R T] = zhangsExt(K,H)
+
+cp = inv(T)*([img_coor zeros(length(img_coor),1) ones(length(img_coor),1)]')
+
+cpp(1,:) =cp(1,:)./cp(3,:); 
+cpp(2,:) =cp(2,:)./cp(3,:); 
+cpp(3,:) =cp(3,:)./cp(3,:); 
+figure
+plot2dquick((K*cpp)')
+
+
+
+
+
+figure
+plot3dquick([img_coor zeros(length(img_coor),1)])
+
 
 
 
